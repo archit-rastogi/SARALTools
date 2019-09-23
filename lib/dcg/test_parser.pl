@@ -38,13 +38,14 @@ parse_log_file(File, Lines, Rem) :-
         !,
         close(Stream).
 
+dcg_log_buffer([], _) --> eos.
 dcg_log_buffer([Line|MoreLines], Options) -->
         dcg_log_line(Line, Options),
         dcg_log_buffer(MoreLines, Options).
-dcg_log_buffer([], _) --> eos.
 
 dcg_log_line(log_line(datetime(Date,Tz,Time), log_body(Body)), Options) -->
         dcg_log_line_start(Date, Tz, Time),
+        white,
         dcg_log_line_body(Body).
 
 dcg_log_line_start([Y, M, D], Tz, [H,Min,S]) -->
