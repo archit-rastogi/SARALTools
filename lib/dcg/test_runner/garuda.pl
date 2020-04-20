@@ -1,5 +1,5 @@
 /** Garuda is the test runner written in python at rubrik.
-  This module define dcg grammar extract useful information from test logs.
+  This module define dcg grammar to extract useful information from test logs.
 
   log_level, module, line number, Thread
   run summary
@@ -76,17 +76,18 @@ dcg_run_summary_next(Detail) -->
         "\n",
         dcg_run_summary_next(Detail).
 
-dcg_execution_status("Sucess") -->
+dcg_execution_status('Success') -->
         "Success".
-dcg_execution_status("NotRun") -->
+dcg_execution_status('NotRun') -->
         "NotRun".
-dcg_execution_status("Error") -->
+dcg_execution_status('Error') -->
         "Error".
-dcg_execution_status("Fail") -->
+dcg_execution_status('Fail') -->
         "Fail".
-dcg_execution_status("") --> [].
+dcg_execution_status('Skip') -->
+        "Skip".
 
-dcg_execution_duration(Duration, "secs") -->
+dcg_execution_duration(Duration, 'secs') -->
         number(Duration),
-        white,
-        "secs".
+        ` `,
+        `secs`.
