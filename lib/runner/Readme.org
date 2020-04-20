@@ -1,0 +1,87 @@
+* Test runner
+** Objective
+*** Facilitate test case debugging and authoring during test development
+** Problem Description - I <2020-04-18 Sat 21:36>
+*** [#0] Instead of inserting pdb.set_trace() at multiple points, we propose:
+1. Intercept every statement in setup/test method and tear down.
+2. Wrap and run every statement with eval.
+3. On error, pause execution and allow user to interactively inspect and modify
+   code in runtime.
+4. Capture modifications and create git patch.
+5. Continue with execution until next error or end.
+*** [#0] Allow debugging in docker in a remote setup
+1. User to run tests on remote machine, and interactively debug and modify code
+   remotely.
+2. Allow user to run code snippets in the same session using ipython notebooks.
+*** [#1] Simplify triaging of tests
+1. Capture global and method variables
+2. Capture and aggregate failures by method and error messages
+*** [#1] Publish live events for a running test
+1. Use structured comments to create steps in test case.
+2. Publish test progress by number of test steps.
+3. Aggregate results by test steps.
+4. Reverse trace-ability from test step to test plan.
+** Plan - I <2020-04-18 Sat 21:38> [2/8]
+*** TODO Proof-of Concept
+**** TODO Explore possible solutions
+***** DONE Explore use of ipython for interpreting pythion code
+CLOSED: [2020-04-19 Sun 00:32]
+****** Notes
+1. ipython = jupyter kernel + enhanced interactive shell
+2. ipython version 6.0 supports python > 3.3
+3. Feature of interest in current context include:
+   - extensible syntax processing for special purpose situations.
+   - magic commands for controlling the environment.
+     - %store allows to save python variables
+     - %macro store edit multi-line previous input
+   - integrated access to teh pdb debugger and python profiler
+   - uses prompt_toolkit for multiline editing
+   - write compatible frotend to create easy to read outputs
+   - multiple client can connect to same computation kernel
+   - interactivel parellel computing via package ipyparallel
+   - allows running system shell commands
+****** Conclusion
+1. ipython model for client and kernel enables lots of possibilities.
+2. %run enables one to run any python script, load and reload with changes,
+   enable multi-line edit and allow to run with debugger.
+   - explore IPython.core.magic to investigate writing a custom script runner,
+     or extending ipython script runner.
+3. IPython.lib.deepreload allows to reload a module.
+4. IPython.embed_kernel() can allow external frontend to connect.
+5. we can use ipython repl loop to run test script:
+   #+BEGIN_SRC ipython
+       while True:
+           code = input(">>> ")
+           exec(code)
+   #+END_SRC
+***** DONE Eplore parsing target module into abstract syntax tree.
+CLOSED: [2020-04-19 Sun 00:47]
+****** Notes
+1. library parser provides interface to python internal parser and byte-code compiler
+2. ast module allows to user to drop in during compilation stage and transform
+   source code.
+****** Conclusion
+1. Too difficult to catch up with parser module. Skimmed through the documentation.
+2. python ast can be used to transform source code as needed.
+3. Go through [[https://greentreesnakes.readthedocs.io/en/latest/][missing python AST docs]]
+4. tokenize module can give comments. Rather we can also use other libraries
+   that give full syntax tree:
+   - lib2to3
+   - redbaron
+***** TODO Reloading modified library and modules
+***** TODO Eplore user interactive mode using readline
+***** WIP Conclude a solution approach
+****** Solution approach I: Use ast to modify test method during compilation.
+1. Use ast to cature all statements of a user defined method.
+2. Call each statement with below extension points:
+   1. befor-method
+   2. after-method
+   3. before-step
+   4. on-success-step
+   5. on-exception-step
+3. Implement extension points for below features:
+   1. start user interactive process with embedded ipython kernel
+   2. publish progress, logs
+   3. allow user to pause-resume
+****** Solution approach II: Extend ipython kernel
+*** TODO Remote debugging and development
