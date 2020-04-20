@@ -3,7 +3,8 @@
 *** Facilitate test case debugging and authoring during test development
 ** Problem Description - I <2020-04-18 Sat 21:36>
 *** [#0] Instead of inserting pdb.set_trace() at multiple points, we propose:
-1. Intercept every statement in setup/test method and tear down.
+1. +Intercept every statement in setup/test method and tear down.+ Instead, use
+   ast to tranform code during compilation.
 2. Wrap and run every statement with eval.
 3. On error, pause execution and allow user to interactively inspect and modify
    code in runtime.
@@ -18,10 +19,13 @@
 2. Capture and aggregate failures by method and error messages
 *** [#1] Publish live events for a running test
 1. Use structured comments to create steps in test case.
+   - tokenize comments with matching regexp to mark start and end of a step.
+   - Create library to process step boundaries.
+   - Future, mark step as async step.
 2. Publish test progress by number of test steps.
 3. Aggregate results by test steps.
 4. Reverse trace-ability from test step to test plan.
-** Plan - I <2020-04-18 Sat 21:38> [2/8]
+** Plan - I <2020-04-18 Sat 21:38> [3/13]
 *** TODO Proof-of Concept
 **** TODO Explore possible solutions
 ***** DONE Explore use of ipython for interpreting pythion code
@@ -68,20 +72,33 @@ CLOSED: [2020-04-19 Sun 00:47]
    that give full syntax tree:
    - lib2to3
    - redbaron
+****** References:
+1. [[https://docs.python.org/2.4/lib/module-compiler.ast.html][Python AST nodes]]
 ***** TODO Reloading modified library and modules
-***** TODO Eplore user interactive mode using readline
+***** INVALID Eplore user interactive mode using readline
 ***** WIP Conclude a solution approach
 ****** Solution approach I: Use ast to modify test method during compilation.
 1. Use ast to cature all statements of a user defined method.
 2. Call each statement with below extension points:
-   1. befor-method
-   2. after-method
-   3. before-step
-   4. on-success-step
-   5. on-exception-step
+   1. before-node(func, args, async)
+   2. after-node(func, args, async)
+   3. call-node(retry_strategy, async)
+      1. on-success(context)
+      2. on-exception(context)
 3. Implement extension points for below features:
    1. start user interactive process with embedded ipython kernel
-   2. publish progress, logs
+   2. publish progress, logs, slack
    3. allow user to pause-resume
 ****** Solution approach II: Extend ipython kernel
+1. Instead of modifying ast during compilation, write custom kernel to interpret differently.
+****** Pros-cons
+| Sno | Approach I | Approach II |
+|-----+------------+-------------|
+|     |            |             |
+****** Winner: Approach I
+***** TODO Create sample test file
+***** TODO Implement AST node transformer with extension points
+****** TODO Implement
+****** TODO Write unittest and verify
+***** TODO Implement plugin to start embedded ipython kernel on failure
 *** TODO Remote debugging and development
